@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using SteamAchievementGenerator.Generation;
+using SteamAchievementGenerator.Model;
 using SteamAchievementGenerator.Parsing;
 
 namespace SteamAchievementGenerator
@@ -56,6 +57,8 @@ namespace SteamAchievementGenerator
         {
             string input = null;
             string output = null;
+            string translationFile = null;
+            string language = null;
             var options = new GeneratorOptions();
 
             for (int i = 0; i < args.Length; i++)
@@ -70,6 +73,14 @@ namespace SteamAchievementGenerator
                     case "-o":
                     case "--output":
                         output = Next(args, ref i);
+                        break;
+                    case "-t":
+                    case "--translation":
+                        translationFile = Next(args, ref i);
+                        break;
+                    case "-l":
+                    case "--language":
+                        language = Next(args, ref i);
                         break;
                     case "--no-stats":
                         options.WriteStats = false;
@@ -134,6 +145,12 @@ namespace SteamAchievementGenerator
             foreach (string warning in parsed.Warnings)
                 Console.WriteLine("  ! " + warning);
 
+            if (!string.IsNullOrEmpty(translationFile))
+            {
+                int failure = ApplyTranslation(parsed, translationFile, language);
+                if (failure != 0) return failure;
+            }
+
             if (parsed.Achievements.Count == 0 && parsed.Stats.Count == 0)
             {
                 Console.Error.WriteLine("Nothing to generate.");
@@ -167,6 +184,80 @@ namespace SteamAchievementGenerator
                 PrintWarnings(report.Warnings);
                 return 0;
             }
+        }
+
+        /// <summary>Reads a Steam Community achievement page and merges it into the parse result.</summary>
+        private static int ApplyTranslation(ParseResult parsed, string path, string language)
+        {
+            path = Path.GetFullPath(path);
+            if (!File.Exists(path))
+            {
+                Console.Error.WriteLine("Translation file not found: " + path);
+                return 1;
+            }
+
+            Console.WriteLine();
+            Console.WriteLine("Reading " + path);
+
+            var translations = SteamCommunityParser.Parse(HtmlLoader.Load(path));
+
+            foreach (string warning in translations.Warnings)
+                Console.WriteLine("  ! " + warning);
+
+            if (string.IsNullOrEmpty(language)) language = translations.Language;
+
+            if (string.IsNullOrEmpty(language))
+            {
+                Console.Error.WriteLine(
+                    "Could not tell which language that page is in (html lang=\"" +
+                    Or(translations.DetectedTag, "") + "\"). Pass --language <name>, e.g. --language german.");
+                return 1;
+            }
+
+            if (!SteamLanguages.IsKnown(language))
+            {
+                Console.WriteLine("  ! '" + language + "' is not a Steam language name; writing it verbatim.");
+            }
+
+            Console.WriteLine("  Language:     " + language +
+                              (string.IsNullOrEmpty(translations.DetectedTag)
+                                  ? ""
+                                  : " (from lang=\"" + translations.DetectedTag + "\")"));
+            Console.WriteLine("  Rows:         " + translations.Achievements.Count);
+
+            if (!string.IsNullOrEmpty(translations.AppId) &&
+                !string.IsNullOrEmpty(parsed.Game.AppId) &&
+                translations.AppId != parsed.Game.AppId)
+            {
+                Console.WriteLine("  ! That page belongs to App ID " + translations.AppId +
+                                  ", the SteamDB page to " + parsed.Game.AppId + ".");
+            }
+
+            var report = TranslationMerger.Apply(parsed.Achievements, translations, language);
+
+            Console.WriteLine("  Translated:   " + report.Matched + " of " + parsed.Achievements.Count);
+
+            foreach (string note in report.Notes)
+                Console.WriteLine("  ! " + note);
+
+            if (report.Untranslated.Count > 0)
+            {
+                Console.WriteLine();
+                Console.WriteLine("Missing " + language + " text for " + report.Untranslated.Count +
+                                  " achievements - add them by hand in achievements.json, or in the window:");
+                foreach (var achievement in report.Untranslated)
+                    Console.WriteLine("  - " + achievement.ApiName + "  (" + achievement.DisplayName + ")");
+            }
+
+            if (report.Unassigned.Count > 0)
+            {
+                Console.WriteLine();
+                Console.WriteLine(report.Unassigned.Count + " rows of the localized page matched no achievement:");
+                foreach (var row in report.Unassigned)
+                    Console.WriteLine("  - " + row.DisplayName);
+            }
+
+            return 0;
         }
 
         private static void PrintWarnings(List<string> warnings)
@@ -206,6 +297,10 @@ namespace SteamAchievementGenerator
             Console.WriteLine("  SteamAchievementGenerator.exe --input <steamdb.html> [--output <folder>] [options]");
             Console.WriteLine();
             Console.WriteLine("  --output <folder>        target folder (default: steam_settings next to the HTML)");
+            Console.WriteLine("  --translation <file>     saved steamcommunity.com achievements page with the");
+            Console.WriteLine("                           official translations (repeatable is not supported yet)");
+            Console.WriteLine("  --language <name>        Steam language name for --translation, e.g. german;");
+            Console.WriteLine("                           detected from the page when omitted");
             Console.WriteLine("  --icon-names api|steam   file names for the icons (default: api)");
             Console.WriteLine("  --no-stats               do not write stats.json");
             Console.WriteLine("  --no-achievements        do not write achievements.json or icons");

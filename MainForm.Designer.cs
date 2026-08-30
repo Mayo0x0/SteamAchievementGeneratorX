@@ -21,8 +21,15 @@ namespace SteamAchievementGenerator
             this.lblHeadline = new System.Windows.Forms.Label();
             this.grpSource = new System.Windows.Forms.GroupBox();
             this.layoutSource = new System.Windows.Forms.TableLayoutPanel();
+            this.lblHtmlCaption = new System.Windows.Forms.Label();
             this.txtHtmlPath = new System.Windows.Forms.TextBox();
             this.btnSelectHtml = new System.Windows.Forms.Button();
+            this.lblTranslationCaption = new System.Windows.Forms.Label();
+            this.txtTranslationPath = new System.Windows.Forms.TextBox();
+            this.btnSelectTranslation = new System.Windows.Forms.Button();
+            this.panelLanguage = new System.Windows.Forms.FlowLayoutPanel();
+            this.lblLanguage = new System.Windows.Forms.Label();
+            this.cmbLanguage = new System.Windows.Forms.ComboBox();
             this.splitMain = new System.Windows.Forms.SplitContainer();
             this.grpGame = new System.Windows.Forms.GroupBox();
             this.layoutGame = new System.Windows.Forms.TableLayoutPanel();
@@ -37,9 +44,12 @@ namespace SteamAchievementGenerator
             this.lblRelease = new System.Windows.Forms.Label();
             this.lblCountsCaption = new System.Windows.Forms.Label();
             this.lblCounts = new System.Windows.Forms.Label();
+            this.lblTranslatedCaption = new System.Windows.Forms.Label();
+            this.lblTranslated = new System.Windows.Forms.Label();
             this.tabsData = new System.Windows.Forms.TabControl();
             this.tabAchievements = new System.Windows.Forms.TabPage();
             this.gridAchievements = new System.Windows.Forms.DataGridView();
+            this.lblAchievementsHint = new System.Windows.Forms.Label();
             this.tabStats = new System.Windows.Forms.TabPage();
             this.gridStats = new System.Windows.Forms.DataGridView();
             this.lblStatsHint = new System.Windows.Forms.Label();
@@ -67,6 +77,7 @@ namespace SteamAchievementGenerator
             ((System.ComponentModel.ISupportInitialize)(this.picLogo)).BeginInit();
             this.grpSource.SuspendLayout();
             this.layoutSource.SuspendLayout();
+            this.panelLanguage.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitMain)).BeginInit();
             this.splitMain.Panel1.SuspendLayout();
             this.splitMain.Panel2.SuspendLayout();
@@ -111,25 +122,37 @@ namespace SteamAchievementGenerator
 
             // grpSource
             this.grpSource.Dock = System.Windows.Forms.DockStyle.Top;
-            this.grpSource.Height = 62;
+            this.grpSource.Height = 96;
             this.grpSource.Name = "grpSource";
             this.grpSource.TabStop = false;
-            this.grpSource.Text = "1. Saved SteamDB stats page (WebScrapBook single file, or \"webpage, complete\")";
+            this.grpSource.Text = "1. Saved pages (WebScrapBook single file, or \"webpage, complete\")";
             this.grpSource.Controls.Add(this.layoutSource);
 
             // layoutSource
-            this.layoutSource.AutoSize = true;
-            this.layoutSource.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.layoutSource.ColumnCount = 2;
+            this.layoutSource.ColumnCount = 4;
+            this.layoutSource.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.AutoSize));
             this.layoutSource.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.layoutSource.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.AutoSize));
             this.layoutSource.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.AutoSize));
             this.layoutSource.Dock = System.Windows.Forms.DockStyle.Top;
             this.layoutSource.Name = "layoutSource";
-            this.layoutSource.RowCount = 1;
+            this.layoutSource.RowCount = 2;
+            this.layoutSource.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
             this.layoutSource.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
             this.layoutSource.Padding = new System.Windows.Forms.Padding(6, 4, 6, 6);
-            this.layoutSource.Controls.Add(this.txtHtmlPath, 0, 0);
-            this.layoutSource.Controls.Add(this.btnSelectHtml, 1, 0);
+            this.layoutSource.Controls.Add(this.lblHtmlCaption, 0, 0);
+            this.layoutSource.Controls.Add(this.txtHtmlPath, 1, 0);
+            this.layoutSource.Controls.Add(this.btnSelectHtml, 2, 0);
+            this.layoutSource.Controls.Add(this.lblTranslationCaption, 0, 1);
+            this.layoutSource.Controls.Add(this.txtTranslationPath, 1, 1);
+            this.layoutSource.Controls.Add(this.btnSelectTranslation, 2, 1);
+            this.layoutSource.Controls.Add(this.panelLanguage, 3, 1);
+
+            // lblHtmlCaption
+            this.lblHtmlCaption.AutoSize = true;
+            this.lblHtmlCaption.Margin = new System.Windows.Forms.Padding(3, 7, 8, 3);
+            this.lblHtmlCaption.Name = "lblHtmlCaption";
+            this.lblHtmlCaption.Text = "SteamDB stats page";
 
             // txtHtmlPath
             this.txtHtmlPath.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
@@ -139,10 +162,50 @@ namespace SteamAchievementGenerator
             // btnSelectHtml
             this.btnSelectHtml.AutoSize = false;
             this.btnSelectHtml.Name = "btnSelectHtml";
-            this.btnSelectHtml.Size = new System.Drawing.Size(120, 25);
-            this.btnSelectHtml.Text = "Select HTML...";
+            this.btnSelectHtml.Size = new System.Drawing.Size(130, 25);
+            this.btnSelectHtml.Text = "Select...";
             this.btnSelectHtml.UseVisualStyleBackColor = true;
             this.btnSelectHtml.Click += new System.EventHandler(this.btnSelectHtml_Click);
+
+            // lblTranslationCaption
+            this.lblTranslationCaption.AutoSize = true;
+            this.lblTranslationCaption.Margin = new System.Windows.Forms.Padding(3, 8, 8, 3);
+            this.lblTranslationCaption.Name = "lblTranslationCaption";
+            this.lblTranslationCaption.Text = "Translations (optional)";
+
+            // txtTranslationPath
+            this.txtTranslationPath.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
+            this.txtTranslationPath.Name = "txtTranslationPath";
+            this.txtTranslationPath.AllowDrop = true;
+
+            // btnSelectTranslation
+            this.btnSelectTranslation.AutoSize = false;
+            this.btnSelectTranslation.Name = "btnSelectTranslation";
+            this.btnSelectTranslation.Size = new System.Drawing.Size(130, 25);
+            this.btnSelectTranslation.Text = "Select...";
+            this.btnSelectTranslation.UseVisualStyleBackColor = true;
+            this.btnSelectTranslation.Click += new System.EventHandler(this.btnSelectTranslation_Click);
+
+            // panelLanguage
+            this.panelLanguage.AutoSize = true;
+            this.panelLanguage.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.panelLanguage.Margin = new System.Windows.Forms.Padding(0);
+            this.panelLanguage.Name = "panelLanguage";
+            this.panelLanguage.WrapContents = false;
+            this.panelLanguage.Controls.Add(this.lblLanguage);
+            this.panelLanguage.Controls.Add(this.cmbLanguage);
+
+            // lblLanguage
+            this.lblLanguage.AutoSize = true;
+            this.lblLanguage.Margin = new System.Windows.Forms.Padding(12, 7, 3, 3);
+            this.lblLanguage.Name = "lblLanguage";
+            this.lblLanguage.Text = "Language:";
+
+            // cmbLanguage
+            this.cmbLanguage.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbLanguage.Name = "cmbLanguage";
+            this.cmbLanguage.Width = 130;
+            this.cmbLanguage.SelectedIndexChanged += new System.EventHandler(this.cmbLanguage_SelectedIndexChanged);
 
             // splitMain
             this.splitMain.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -168,8 +231,9 @@ namespace SteamAchievementGenerator
             this.layoutGame.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.layoutGame.Dock = System.Windows.Forms.DockStyle.Fill;
             this.layoutGame.Name = "layoutGame";
-            this.layoutGame.RowCount = 6;
+            this.layoutGame.RowCount = 7;
             this.layoutGame.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 150F));
+            this.layoutGame.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
             this.layoutGame.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
             this.layoutGame.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
             this.layoutGame.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
@@ -188,6 +252,8 @@ namespace SteamAchievementGenerator
             this.layoutGame.Controls.Add(this.lblRelease, 1, 4);
             this.layoutGame.Controls.Add(this.lblCountsCaption, 0, 5);
             this.layoutGame.Controls.Add(this.lblCounts, 1, 5);
+            this.layoutGame.Controls.Add(this.lblTranslatedCaption, 0, 6);
+            this.layoutGame.Controls.Add(this.lblTranslated, 1, 6);
 
             // picGameHeader
             this.picGameHeader.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
@@ -234,6 +300,14 @@ namespace SteamAchievementGenerator
             this.lblCounts.Margin = new System.Windows.Forms.Padding(3, 6, 3, 3);
             this.lblCounts.Text = "-";
 
+            this.lblTranslatedCaption.AutoSize = true;
+            this.lblTranslatedCaption.Margin = new System.Windows.Forms.Padding(3, 6, 12, 3);
+            this.lblTranslatedCaption.Text = "Translated";
+            this.lblTranslated.AutoSize = true;
+            this.lblTranslated.Margin = new System.Windows.Forms.Padding(3, 6, 3, 3);
+            this.lblTranslated.Text = "-";
+            this.lblTranslated.MaximumSize = new System.Drawing.Size(240, 0);
+
             // tabsData
             this.tabsData.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabsData.Name = "tabsData";
@@ -248,17 +322,26 @@ namespace SteamAchievementGenerator
             this.tabAchievements.Text = "Achievements";
             this.tabAchievements.UseVisualStyleBackColor = true;
             this.tabAchievements.Controls.Add(this.gridAchievements);
+            this.tabAchievements.Controls.Add(this.lblAchievementsHint);
+
+            // lblAchievementsHint
+            this.lblAchievementsHint.Dock = System.Windows.Forms.DockStyle.Top;
+            this.lblAchievementsHint.Name = "lblAchievementsHint";
+            this.lblAchievementsHint.Height = 34;
+            this.lblAchievementsHint.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.lblAchievementsHint.Text = "Load a localized page, or just pick a language, to fill the translated columns. "
+                + "Highlighted rows have no translation yet - you can type it straight into the grid.";
 
             // gridAchievements
             this.gridAchievements.AllowUserToAddRows = false;
             this.gridAchievements.AllowUserToDeleteRows = false;
             this.gridAchievements.AllowUserToResizeRows = false;
             this.gridAchievements.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.gridAchievements.EditMode = System.Windows.Forms.DataGridViewEditMode.EditProgrammatically;
+            this.gridAchievements.EditMode = System.Windows.Forms.DataGridViewEditMode.EditOnKeystrokeOrF2;
             this.gridAchievements.Name = "gridAchievements";
-            this.gridAchievements.ReadOnly = true;
             this.gridAchievements.RowHeadersVisible = false;
-            this.gridAchievements.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            this.gridAchievements.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.CellSelect;
+            this.gridAchievements.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.gridAchievements_CellEndEdit);
 
             // tabStats
             this.tabStats.Name = "tabStats";
@@ -332,7 +415,7 @@ namespace SteamAchievementGenerator
             // btnSelectOutput
             this.btnSelectOutput.AutoSize = false;
             this.btnSelectOutput.Name = "btnSelectOutput";
-            this.btnSelectOutput.Size = new System.Drawing.Size(120, 25);
+            this.btnSelectOutput.Size = new System.Drawing.Size(130, 25);
             this.btnSelectOutput.Text = "Select folder...";
             this.btnSelectOutput.UseVisualStyleBackColor = true;
             this.btnSelectOutput.Click += new System.EventHandler(this.btnSelectOutput_Click);
@@ -341,8 +424,8 @@ namespace SteamAchievementGenerator
             this.flowOptions.AutoSize = true;
             this.flowOptions.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.flowOptions.Dock = System.Windows.Forms.DockStyle.Top;
-            this.flowOptions.Name = "flowOptions";
             this.flowOptions.Margin = new System.Windows.Forms.Padding(0, 6, 0, 0);
+            this.flowOptions.Name = "flowOptions";
             this.flowOptions.WrapContents = true;
             this.flowOptions.Controls.Add(this.chkAchievements);
             this.flowOptions.Controls.Add(this.chkStats);
@@ -445,8 +528,8 @@ namespace SteamAchievementGenerator
             // MainForm
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1100, 720);
-            this.MinimumSize = new System.Drawing.Size(1000, 620);
+            this.ClientSize = new System.Drawing.Size(1180, 760);
+            this.MinimumSize = new System.Drawing.Size(1040, 640);
             this.Padding = new System.Windows.Forms.Padding(10);
             this.Controls.Add(this.splitMain);
             this.Controls.Add(this.grpSource);
@@ -481,6 +564,8 @@ namespace SteamAchievementGenerator
             this.splitMain.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitMain)).EndInit();
             this.splitMain.ResumeLayout(false);
+            this.panelLanguage.ResumeLayout(false);
+            this.panelLanguage.PerformLayout();
             this.layoutSource.ResumeLayout(false);
             this.layoutSource.PerformLayout();
             this.grpSource.ResumeLayout(false);
@@ -497,8 +582,15 @@ namespace SteamAchievementGenerator
         private System.Windows.Forms.Label lblHeadline;
         private System.Windows.Forms.GroupBox grpSource;
         private System.Windows.Forms.TableLayoutPanel layoutSource;
+        private System.Windows.Forms.Label lblHtmlCaption;
         private System.Windows.Forms.TextBox txtHtmlPath;
         private System.Windows.Forms.Button btnSelectHtml;
+        private System.Windows.Forms.Label lblTranslationCaption;
+        private System.Windows.Forms.TextBox txtTranslationPath;
+        private System.Windows.Forms.Button btnSelectTranslation;
+        private System.Windows.Forms.FlowLayoutPanel panelLanguage;
+        private System.Windows.Forms.Label lblLanguage;
+        private System.Windows.Forms.ComboBox cmbLanguage;
         private System.Windows.Forms.SplitContainer splitMain;
         private System.Windows.Forms.GroupBox grpGame;
         private System.Windows.Forms.TableLayoutPanel layoutGame;
@@ -513,9 +605,12 @@ namespace SteamAchievementGenerator
         private System.Windows.Forms.Label lblRelease;
         private System.Windows.Forms.Label lblCountsCaption;
         private System.Windows.Forms.Label lblCounts;
+        private System.Windows.Forms.Label lblTranslatedCaption;
+        private System.Windows.Forms.Label lblTranslated;
         private System.Windows.Forms.TabControl tabsData;
         private System.Windows.Forms.TabPage tabAchievements;
         private System.Windows.Forms.DataGridView gridAchievements;
+        private System.Windows.Forms.Label lblAchievementsHint;
         private System.Windows.Forms.TabPage tabStats;
         private System.Windows.Forms.DataGridView gridStats;
         private System.Windows.Forms.Label lblStatsHint;

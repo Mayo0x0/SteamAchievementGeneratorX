@@ -17,13 +17,16 @@ This is a reworked fork of [jeremanteca/SteamAchievementGenerator](https://githu
 | Inline images | not supported - broke on `data:` URIs | decoded straight out of the page |
 | Missing icons | silently lost | refetched from the Steam CDN using the App ID |
 | Stats | not exported | **`stats.json` for gbe_fork**, with an editable type/default/global grid |
+| Translations | English only | **official Steam translations** merged in from a community page, editable in the grid |
 | `achievements.json` | Goldberg legacy key only | `icon` + `icon_gray` + `icongray` |
 | App ID | picked the first `data-appid` on the page (often the wrong game) | reads the page's own app scope |
 | Interface | fixed size window | resizable, drag & drop, achievement/stat/log tabs |
 | Automation | none | command line mode for batch conversion |
 | Build | .NET Framework 4.8 / packages.config | SDK project, `net48` **and** `net8.0-windows` |
 
-## Getting the input page
+## Getting the input pages
+
+### The SteamDB stats page (required)
 
 1. Open the **Stats** tab of the game on SteamDB, e.g. `https://steamdb.info/app/3024040/stats/`.
 2. Scroll through the whole achievement list once. SteamDB only loads the greyscale
@@ -34,16 +37,35 @@ This is a reworked fork of [jeremanteca/SteamAchievementGenerator](https://githu
    * **WebScrapBook** (recommended): *Capture page* - one self contained `.html` file.
    * or the browser's own *Save as -> Webpage, complete*, keeping the `_files` folder next to the HTML.
 
+### The localized achievement page (optional)
+
+SteamDB only ever shows English. The official translations live on the Steam Community, in
+whatever language your browser asks for:
+
+1. Set your browser (or your Steam profile) to the language you want.
+2. Open `https://steamcommunity.com/stats/<App ID>/achievements/` and save it the same way.
+3. Hand that file to the tool as well.
+
+The community page never prints API names, so the two pages are joined on the Steam icon file
+name, which both of them reference. Whatever cannot be matched that way is retried on the global
+unlock rate, but only where that rate is unique on both sides - a wrong translation is worse than
+a missing one. Everything still missing afterwards is listed by API name so you can fill it in.
+
 ## Using it
 
 ### Window
 
 1. Start `SteamAchievementGenerator.exe`, then pick the HTML file, or drag it onto the window.
-2. Check the **Achievements** and **Stats** tabs.
+2. Optionally pick the saved community page as **Translations**. The language is read from the
+   page (`lang="de"` becomes `german`); if the page does not say, you are asked. Achievements with
+   no translation are highlighted in the **Achievements** tab and can be typed straight into the
+   grid - the generated file then contains those too. Picking a language without loading a page
+   works as well, if you want to write all the text yourself.
+3. Check the **Achievements** and **Stats** tabs.
    SteamDB does not publish whether a stat is an `int`, a `float` or an `avgrate` - the type is
    guessed from the default value, and the **Type** column is editable if the game needs
    something else.
-3. Pick the output folder (defaults to `steam_settings` next to the HTML file) and press
+4. Pick the output folder (defaults to `steam_settings` next to the HTML file) and press
    **Generate steam_settings**.
 
 ### Command line
@@ -55,6 +77,8 @@ SteamAchievementGenerator.exe --input <steamdb.html> [--output <folder>] [option
 | option | meaning |
 |---|---|
 | `--output <folder>` | target folder (default: `steam_settings` next to the HTML) |
+| `--translation <file>` | saved steamcommunity.com achievements page with the official translations |
+| `--language <name>` | Steam language name for `--translation` (e.g. `german`); detected from the page when omitted |
 | `--icon-names api\|steam` | `images/ACH_NAME.jpg` (default) or the original Steam hash file name |
 | `--no-stats` | do not write `stats.json` |
 | `--no-achievements` | do not write `achievements.json` or icons |
@@ -81,8 +105,14 @@ steam_settings/
 [
   {
     "name": "ACHIEVEMENT_Store_Food_1000",
-    "displayName": { "english": "Lord v. Food" },
-    "description": { "english": "Store 1,000 food in a single game" },
+    "displayName": {
+      "english": "Lord v. Food",
+      "german": "Burgherr vs. Nahrung"
+    },
+    "description": {
+      "english": "Store 1,000 food in a single game",
+      "german": "Lagert 1.000 Nahrung in einem einzigen Spiel"
+    },
     "hidden": "0",
     "icon": "images/ACHIEVEMENT_Store_Food_1000.jpg",
     "icon_gray": "images/ACHIEVEMENT_Store_Food_1000_gray.jpg",
@@ -93,8 +123,9 @@ steam_settings/
 
 * `icon_gray` is what current gbe_fork reads, `icongray` is kept for the original Goldberg
   emulator and for Achievement Watcher.
-* The localized object form is resolved by gbe_fork at load time; use `--plain-text` if a tool
-  in your chain insists on plain strings.
+* The localized object form is resolved by gbe_fork at load time: it picks the language the game
+  asked for, falls back to `english`, and only then to the first entry. `--plain-text` collapses it
+  back to a plain string, but is ignored for achievements that actually carry a translation.
 * SteamDB's global unlock rate is shown in the **Achievements** tab for reference, but it is not
   written to the file - no emulator needs it (gbe_fork would read an `unlock_percentage` field for
   `GetAchievementUnlockPercentage`, and returns `-1.0` when it is absent).
@@ -149,6 +180,11 @@ icons are fetched from
 
 **A single missing icon** - very recently added achievements are sometimes not on the CDN yet.
 The generator falls back to the unlocked icon and says so in the log.
+
+**Achievements without a translation** - the community page shows fewer rows than SteamDB (it hides
+nothing, but SteamDB sometimes lists achievements Steam has not published yet), or the icons were
+replaced between the two saves. The missing ones are named in the dialog and in the Log tab, and
+their cells are highlighted in the Achievements tab so you can type the text in yourself.
 
 ## License
 

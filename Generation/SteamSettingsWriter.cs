@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SteamAchievementGenerator.Model;
+using SteamAchievementGenerator.Parsing;
 
 namespace SteamAchievementGenerator.Generation
 {
@@ -292,10 +293,15 @@ namespace SteamAchievementGenerator.Generation
                 string displayName = achievement.DisplayName ?? "";
                 string description = achievement.Description ?? "";
 
-                if (_options.LocalizedTextObjects)
+                bool translated = achievement.LocalizedDisplayNames.Count > 0
+                               || achievement.LocalizedDescriptions.Count > 0;
+
+                // Translations can only be expressed by the object form, so it wins over
+                // the plain-text option whenever there is something to express.
+                if (_options.LocalizedTextObjects || translated)
                 {
-                    item["displayName"] = new JObject { { "english", displayName } };
-                    item["description"] = new JObject { { "english", description } };
+                    item["displayName"] = BuildLocalized(displayName, achievement.LocalizedDisplayNames);
+                    item["description"] = BuildLocalized(description, achievement.LocalizedDescriptions);
                 }
                 else
                 {
@@ -316,6 +322,32 @@ namespace SteamAchievementGenerator.Generation
             }
 
             return array.ToString(Formatting.Indented) + Environment.NewLine;
+        }
+
+        /// <summary>English first, then every translation in Steam's own language order.</summary>
+        private static JObject BuildLocalized(string english, Dictionary<string, string> translations)
+        {
+            var result = new JObject();
+            result["english"] = english ?? "";
+
+            foreach (string language in SteamLanguages.All)
+            {
+                if (string.Equals(language, "english", StringComparison.OrdinalIgnoreCase)) continue;
+
+                string value;
+                if (translations.TryGetValue(language, out value) && !string.IsNullOrEmpty(value))
+                    result[language] = value;
+            }
+
+            // Anything the user typed under a name we do not know about is kept as well.
+            foreach (var pair in translations)
+            {
+                if (result[pair.Key] != null) continue;
+                if (string.IsNullOrEmpty(pair.Value)) continue;
+                result[pair.Key] = pair.Value;
+            }
+
+            return result;
         }
 
         private static string BuildStatsJson(List<StatEntry> stats)
