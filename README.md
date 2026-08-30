@@ -1,108 +1,155 @@
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/c9daffa1-1634-4be9-b665-c8999cc30647" alt="AchievementsGenLogo" width="400"/> 
-  <!-- Puedes ajustar el 'width' según necesites -->
+  <img src="https://github.com/user-attachments/assets/c9daffa1-1634-4be9-b665-c8999cc30647" alt="AchievementsGenLogo" width="400"/>
 </p>
 
-A Windows Forms application designed to get any achievement data from a game with a downloaded SteamDB HTML page of it and generate a structured JSON file, download achievement icons, and create a `steam_appid.txt` file.
-This tool is meant to be used with with `Golberg Steam Emu` and `Achievements Watcher`.
+# Steam Achievement Generator X
 
-![image](https://github.com/user-attachments/assets/8aa1e513-69a0-4029-abe2-8f01e33f6540)
+Turns a **saved SteamDB stats page** into a ready to use `steam_settings` folder for the
+[gbe_fork](https://github.com/Detanup01/gbe_fork) Goldberg Steam emulator.
 
-## Features
+This is a reworked fork of [jeremanteca/SteamAchievementGenerator](https://github.com/jeremanteca/SteamAchievementGenerator).
 
-*   Gets game information (Name, App ID, Developer, Release Date) from SteamDB HTML.
-*   Displays obtained game information, including the game's header image.
-*   Extracts achievement details (API Name, Display Name, Description, Hidden Status, Icon URLs).
-*   Generates an `achievements.json` file in the format used by Goldberg Steam Emu.
-*   Downloads achievement icons (both normal and grayscale/small) into an `images` subfolder.
-*   Creates a `steam_appid.txt` file containing the game's App ID.
+## What is different from the original
 
-## Prerequisites
+| | original | this fork |
+|---|---|---|
+| Input | "Webpage, complete" only (HTML + `_files` folder) | **single file HTML** (WebScrapBook), "webpage complete", and raw HTML |
+| Inline images | not supported - broke on `data:` URIs | decoded straight out of the page |
+| Missing icons | silently lost | refetched from the Steam CDN using the App ID |
+| Stats | not exported | **`stats.json` for gbe_fork**, with an editable type/default/global grid |
+| `achievements.json` | Goldberg legacy key only | `icon` + `icon_gray` + `icongray` |
+| App ID | picked the first `data-appid` on the page (often the wrong game) | reads the page's own app scope |
+| Interface | fixed size window | resizable, drag & drop, achievement/stat/log tabs |
+| Automation | none | command line mode for batch conversion |
+| Build | .NET Framework 4.8 / packages.config | SDK project, `net48` **and** `net8.0-windows` |
 
-*   Windows Operating System.
-*   .NET Framework 4.8 or higher.
-*   Game with Golberg Steam Emulator
+## Getting the input page
 
-## USAGE
+1. Open the **Stats** tab of the game on SteamDB, e.g. `https://steamdb.info/app/3024040/stats/`.
+2. Scroll through the whole achievement list once. SteamDB only loads the greyscale
+   ("locked") icons while a row is hovered, so a page saved without scrolling stores
+   placeholders for most of them - the generator can refetch those from the Steam CDN,
+   but scrolling first makes the run fully offline.
+3. Save the page:
+   * **WebScrapBook** (recommended): *Capture page* - one self contained `.html` file.
+   * or the browser's own *Save as -> Webpage, complete*, keeping the `_files` folder next to the HTML.
 
-1.  **Download the Latest Release:**
-    *   Go to the [Releases page](https://github.com/jeremanteca/SteamAchievementGenerator/releases)
-    *   Download the `.zip` file from the latest release (e.g., `SteamAchievementGenerator_1.0.0_.zip`).
+## Using it
 
-2.  **Extract the Application:**
-    *   Extract the contents of the downloaded `.zip` file to a folder in your computer (e.g., `C:\Programs`).
+### Window
 
-3.  **Download SteamDB Achievement Page of the game you want:**
-    *   Open your web browser (e.g., Chrome, Firefox).
-    *   Navigate to the "Achievements" tab of a game on SteamDB. For example: `https://steamdb.info/app/1934570/stats/`
-    *   Save the complete HTML page:
-        *   In Chrome: Right-click on the page -> "Save as..." -> Choose "Webpage, Complete".
-        *   In Firefox: Right-click on the page -> "Save Page As..." -> Choose "Web Page, complete".
-    *   Save this HTML file (e.g., `South of Midnight Achievements · SteamDB.html`) along with the folder that comes with it (e.g., `South of Midnight Achievements · SteamDB_files`)          somewhere you can easily find it.
+1. Start `SteamAchievementGenerator.exe`, then pick the HTML file, or drag it onto the window.
+2. Check the **Achievements** and **Stats** tabs.
+   SteamDB does not publish whether a stat is an `int`, a `float` or an `avgrate` - the type is
+   guessed from the default value, and the **Type** column is editable if the game needs
+   something else.
+3. Pick the output folder (defaults to `steam_settings` next to the HTML file) and press
+   **Generate steam_settings**.
 
-4.  **Run the program:**
-    *   Open the folder where you extracted the application.
-    *   Double-click `SteamAchievementGenerator.exe` to run it.
+### Command line
 
-5.  **Select the HTML File:**
-    *   Click the "Select HTML File..." button in the application.
-    *   Navigate to and select the HTML file you downloaded in step 3.
-    *   The application will display the game's information and the number of achievements found.
+```
+SteamAchievementGenerator.exe --input <steamdb.html> [--output <folder>] [options]
+```
 
-6.  **Generate Achievements:**
-    *   Once the HTML is loaded and game info is displayed, click the "Generate Achievements" button.
-    *   The application will:
-        *   Create a new folder named `steam_settings` in the same directory as the HTML file you selected.
-        *   Inside this output folder, it will generate:
-            *   `achievements.json`: The JSON file with all achievement data.
-            *   An `images` subfolder: Containing all downloaded achievement icons.
-            *   `steam_appid.txt`: A text file with the game's App ID.
-    *   A progress bar will show the status, and a success message will appear upon completion.
+| option | meaning |
+|---|---|
+| `--output <folder>` | target folder (default: `steam_settings` next to the HTML) |
+| `--icon-names api\|steam` | `images/ACH_NAME.jpg` (default) or the original Steam hash file name |
+| `--no-stats` | do not write `stats.json` |
+| `--no-achievements` | do not write `achievements.json` or icons |
+| `--no-download` | never contact the Steam CDN, use only what the page contains |
+| `--plain-text` | write `displayName`/`description` as plain strings instead of `{"english": ...}` |
+| `--clean` | delete an existing `images` folder before writing |
 
-7.  **Placing the generated folder (steam_settings)**
-    *   Navigate to your game folder (e.g., `C:\Games\South of Midnight`)
-    *   Find where the `steam_api64.dll` is (e.g., `C:\Games\South of Midnight\Engine\Binaries\ThirdParty\Steamworks\Steamv152\Win64\`). Unreal Engine games like this have it there. Most game have it in the same folder where the game exe is.
-    *   Put the generated folder (steam_settings) in there.
-      
-8.  **Creating a folder in Goldberg SteamEmu Saves**
-    *   Press Win + R
-    *   Type `%appdata%`
-    *   Open folder called `Goldberg SteamEmu Saves`
-    *   Create a new folder and name it as the App ID of your game (this App ID is in the `steam_appid.txt` generated by the program)
+Passing a single file path without any switch opens that file in the window, so the exe can be
+used as an Explorer file association or a drop target.
 
-9.  **Check `Achievement Watcher`**
-    *   Open `Achievement Watcher`
-    *   The game should now appear
+## What gets generated
 
+```
+steam_settings/
+  steam_appid.txt        the App ID
+  achievements.json      one entry per achievement
+  stats.json             one entry per stat
+  images/                unlocked and locked icons
+```
 
-## Building from Source
+`achievements.json`:
 
-If you wish to build the application from source:
+```json
+[
+  {
+    "name": "ACHIEVEMENT_Store_Food_1000",
+    "displayName": { "english": "Lord v. Food" },
+    "description": { "english": "Store 1,000 food in a single game" },
+    "hidden": "0",
+    "icon": "images/ACHIEVEMENT_Store_Food_1000.jpg",
+    "icon_gray": "images/ACHIEVEMENT_Store_Food_1000_gray.jpg",
+    "icongray": "images/ACHIEVEMENT_Store_Food_1000_gray.jpg"
+  }
+]
+```
 
-1.  Clone this repository:
-    ```bash
-    git clone https://github.com/jeremanteca/SteamAchievementGenerator.git
-    ```
-2.  Open the solution file (`SteamAchievementGenerator.sln`) in Visual Studio 2022.
-3.  Ensure you have the ".NET desktop development" workload installed.
-4.  Restore NuGet packages (HtmlAgilityPack, Newtonsoft.Json).
-5.  Select the "Release" configuration.
-6.  Build the solution (Build -> Build Solution).
-7.  The executable will be in `SteamAchievementGenerator/bin/Release/`.
+* `icon_gray` is what current gbe_fork reads, `icongray` is kept for the original Goldberg
+  emulator and for Achievement Watcher.
+* The localized object form is resolved by gbe_fork at load time; use `--plain-text` if a tool
+  in your chain insists on plain strings.
+* SteamDB's global unlock rate is shown in the **Achievements** tab for reference, but it is not
+  written to the file - no emulator needs it (gbe_fork would read an `unlock_percentage` field for
+  `GetAchievementUnlockPercentage`, and returns `-1.0` when it is absent).
+
+`stats.json`:
+
+```json
+[
+  { "name": "stat_Units_Killed", "type": "int", "default": "0", "global": "0" }
+]
+```
+
+`type` is one of `int`, `float`, `avgrate`. `default` and `global` are strings, as gbe_fork expects.
+SteamDB never shows a global value, so it is always `"0"` unless you edit it in the grid.
+
+## Installing the result
+
+1. Copy the generated `steam_settings` folder next to the game's `steam_api64.dll` /
+   `steam_api.dll` (for Unreal Engine titles that is usually
+   `<Game>\Engine\Binaries\ThirdParty\Steamworks\Steamv1xx\Win64\`).
+2. Create `%appdata%\GSE Saves\<App ID>\` (older builds: `Goldberg SteamEmu Saves`) so unlocked
+   achievements have somewhere to live.
+
+## Building
+
+Requires the .NET 8 SDK (or Visual Studio 2022 with the ".NET desktop development" workload).
+
+```bash
+dotnet build SteamAchievementGenerator.sln -c Release
+```
+
+Two builds are produced:
+
+* `bin/Release/net48/` - .NET Framework 4.8, runs on any current Windows without extra installs
+* `bin/Release/net8.0-windows/` - .NET 8, needs the .NET Desktop Runtime
+
+A portable single file build:
+
+```bash
+dotnet publish -c Release -f net8.0-windows -r win-x64 --self-contained true -p:PublishSingleFile=true
+```
 
 ## Troubleshooting
 
-*   **"No achievement nodes found..." error:**
-    *   Ensure you saved the *complete* HTML page from SteamDB, not just a partial source or an incorrect page.
-    *   The structure of SteamDB's achievement page might have changed. If so, the parsing logic in the application may need an update.
-*   **Images not downloading:**
-    *   Check your internet connection.
-    *   SteamDB might be temporarily blocking direct image downloads, or the image URLs might have changed. The application attempts to copy images from the local `_files` folder (created when saving a complete webpage) if direct download fails.
+**"No achievement entries found"** - the saved page is not the `/stats/` tab, or the save only
+captured a partial DOM. Re-save with WebScrapBook's *Capture page*.
 
-## Contributing
+**Many missing icons** - the page was saved without scrolling through the list and the App ID
+lookup failed, or you are offline with `--no-download`. Check the App ID shown in the window;
+icons are fetched from
+`https://cdn.cloudflare.steamstatic.com/steamcommunity/public/images/apps/<App ID>/<file>.jpg`.
 
-Contributions are welcome! If you have ideas for improvements or bug fixes, please feel free to open an issue or submit a pull request.
+**A single missing icon** - very recently added achievements are sometimes not on the CDN yet.
+The generator falls back to the unlocked icon and says so in the log.
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE.md) - see the LICENSE.md file for details (if you choose to add one).
+MIT - see [LICENSE](LICENSE).

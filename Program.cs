@@ -1,22 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System;
+using System.IO;
 using System.Windows.Forms;
 
 namespace SteamAchievementGenerator
 {
     internal static class Program
     {
-        /// <summary>
-        /// Punto de entrada principal para la aplicación.
-        /// </summary>
         [STAThread]
-        static void Main()
+        private static int Main(string[] args)
         {
+            if (ConsoleRunner.WantsConsole(args))
+                return ConsoleRunner.Run(args);
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1());
+            string startupFile = args != null && args.Length == 1 && File.Exists(args[0]) ? args[0] : null;
+            Application.Run(new MainForm(startupFile));
+            return 0;
         }
     }
 }
